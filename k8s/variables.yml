@@ -1,0 +1,14 @@
+k8s_pod_cidr: 192.168.0.0/16
+k8s_version: 1.24.0
+modules:
+  - overlay
+  - br_netfilter
+list_of_packages:
+  - containerd
+  - apt-transport-https
+  - curl
+  - kubeadm=1.24.0-00
+  - kubelet=1.24.0-00
+  - kubectl=1.24.0-00
+control_plane: true
+worker_nodes: true

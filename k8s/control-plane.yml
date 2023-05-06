@@ -1,0 +1,8 @@
+- name: Setup the control plane 
+  hosts: control_plane
+  become: true
+  gather_facts: yes
+  vars_files:
+    - ./variables.yml
+  roles: 
+    - configure-master

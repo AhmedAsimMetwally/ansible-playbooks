@@ -1,0 +1,67 @@
+---
+- name: Add containerd modules to modules-load
+  copy:
+    content: |
+      overlay
+      br_netfilter
+    dest: /etc/modules-load.d/containerd.conf
+
+- name: Load overlay and br_netfilter modules
+  ansible.builtin.modprobe:
+    name: "{{ item }}"
+  loop:
+    - overlay
+    - br_netfilter
+
+- name: Configure Kubernetes CRI
+  copy:
+    content: |
+      net.bridge.bridge-nf-call-iptables = 1
+      net.ipv4.ip_forward = 1
+      net.bridge.bridge-nf-call-ip6tables = 1
+    dest: /etc/sysctl.d/99-kubernetes-cri.conf
+
+
+- name: Update sysctl
+  ansible.builtin.shell: "sysctl --system"
+    
+
+- name: Disable swap
+  ansible.builtin.shell: "swapoff -a"
+
+- name: Add Kubernetes repository key
+  ansible.builtin.apt_key:
+    url: "https://packages.cloud.google.com/apt/doc/apt-key.gpg"
+
+- name: Add Kubernetes repository
+  copy:
+    content: |
+      deb https://apt.kubernetes.io/ kubernetes-xenial main
+    dest: /etc/apt/sources.list.d/kubernetes.list
+
+- name: Update repositories cache and install all packages
+  ansible.builtin.apt:
+    name: "{{ list_of_packages }}"
+    update_cache: yes
+
+- name: Create containerd directory
+  file:
+    path: /etc/containerd
+    state: directory
+    mode: '0755'
+
+- name: Create containerd config file
+  shell: "/usr/bin/containerd config default > /etc/containerd/config.toml"
+
+
+- name: Restart containerd service
+  ansible.builtin.service:
+    name: containerd
+    state: restarted
+    
+- name: Prevent k8s packages from being upgraded
+  ansible.builtin.dpkg_selections:
+    name: "{{ item | regex_replace('=.*$', '') }}"
+    selection: hold
+  loop: "{{ list_of_packages | select('match', 'kube.*') | list }}"
+

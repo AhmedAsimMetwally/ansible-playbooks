@@ -1,0 +1,6 @@
+[control_plane]
+34.250.123.239    ansible_user=cloud_user
+
+[worker_nodes]
+54.228.22.124     ansible_user=cloud_user
+54.246.253.203    ansible_user=cloud_user

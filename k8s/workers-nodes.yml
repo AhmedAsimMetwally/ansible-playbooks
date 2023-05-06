@@ -1,0 +1,8 @@
+- name: Setup the worker nodes
+  hosts: worker_nodes
+  become: true
+  gather_facts: yes
+  vars_files:
+    - ./variables.yml
+  roles: 
+    - configure-workers
